@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vanilla Component</title>
+    </head>
+    <body>
+        <h1>Vanilla Component</h1>
+        <p>A super light weight reactive wrapper for web component</p>
+        <hr />
+        <my-element> </my-element>
+        <my-element id="x" title="Title" attrName="not default">
+            <p>x.$attrs.title = "title ~"</p>
+            <p>x.$attrs.attrname="not default ~"</p>
+            <p>enter code above to the console, and see how reactive it is.</p>
+        </my-element>
+        <my-img width="48%">this is a picture</my-img>
+        <my-img width="48%" src="https://picsum.photos/seed/x/1920/1080">this is also a picture</my-img>
+    </body>
+    <script type="module">
+        import defineElement from "./vanilla-component.js";
+
+        defineElement("my-element", {
+            // `this` is always bind to the custom element itself
+            render(attrs) {
+                // values in attrs has been filtered, any < become &lt; and > become &gt;
+                // if need to render HTML, use <slot> instead
+                return `
+                <style>
+                    h1 {color: blue;}
+                    div {border: 1px solid black; border-radius:8px; margin: 8px; padding :8px;}
+                </style>
+                <div>
+                    <h1>${attrs.title}</h1>
+                    <p>${attrs.attrname}</p>
+                    <p><slot></slot><p>
+                </div>`;
+            },
+            attrs: {
+                // the attr can only be string!!!
+                // only attributes declared in attrs and watch are reactive!!!
+                title: "<my-element />",
+                attrname: "default",
+            },
+            watch: {
+                // attribute change listener, attrname must be lowercase
+                // the watched attribute can distinct from attributes declared in attrs, and will add to be reactive
+                // which means change of watched value will also cause re-render
+                attrname: (oldVal, newVal) => {
+                    console.log("props.attrname()", oldVal, newVal);
+                },
+            },
+            methods: {
+                // set method to the element instance
+                beNULL() {
+                    // shadowRoot is available only if isShadowRootOpen set to true
+                    this.shadowRoot.innerHTML = "null";
+                },
+            },
+            isShadowRootOpen: true,
+            shadow(shadowRoot, attrs) {
+                // after first render, do something with the shadowRoot
+                // this is always available no matter what `isShadowRootOpen` is.
+                // values in attrs has been filtered, any < become &lt; and > become &gt;
+            },
+            // lifecycle hooks
+            connectedCallback() {
+                console.log("connectedCallback()");
+            },
+            disconnectedCallback() {
+                console.log("disconnectedCallback()");
+            },
+            adoptedCallback() {
+                console.log("adoptedCallback()");
+            },
+            attributeChangedCallback() {
+                console.log("attributeChangedCallback()");
+            },
+        }).then(() => console.log(`the element has been defined`));
+
+        //
+        //
+        // example
+        //
+        //
+        defineElement("my-img", {
+            render(attrs) {
+                return `
+                <style>
+                    :host {
+                        display: inline-block;
+                        width: ${attrs.width};
+                        height: ${attrs.height};
+                        overflow:hidden;
+                        border-radius:4px;
+                        box-shadow:
+                          0 13px 27px -5px hsl(240deg 30% 28% / 25%),
+                          0 8px 16px -8px hsl(0deg 0% 0% / 30%),
+                          0 -6px 16px -6px hsl(0deg 0% 0% / 3%);
+                    }
+                    #holder {
+                        height: 320px;
+                        display:flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 500%;
+                    }
+                    img {
+                        width: 100%;
+                        height: auto;
+                    }
+                    p {
+                        text-align: center;
+                        padding: 4px;
+                        margin:4px;
+                    }
+                </style>
+
+                <div id="holder"><span>loading...</span></div>
+                <img src="${attrs.src}">
+                <p><slot></slot></p>
+                `;
+            },
+            attrs: {
+                src: "https://picsum.photos/1920/1080",
+                width: "auto",
+                height: "auto",
+            },
+            shadow(shadowRoot, attrs) {
+                const holder = shadowRoot.getElementById("holder");
+                const img = shadowRoot.querySelector("img");
+                img.style.display = "none";
+                img.onload = () => {
+                    holder.remove();
+                    img.style.display = "block";
+                };
+            },
+        });
+    </script>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "vanilla-component",
+  "version": "1.0.0",
+  "description": "",
+  "main": "vc.js",
+  "scripts": {
+    "terser": "terser vanilla-component.js -o vanilla-component.min.js -c -m"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
